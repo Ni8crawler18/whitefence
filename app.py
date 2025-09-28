@@ -221,19 +221,27 @@ def run_single_security_check(check_index):
         last_time = result.get("lastLocationTime")
         match_rate = result.get("matchRate", 0)
         readable_time = format_date(last_time) if last_time else None
-
         result_text = f"Location Verified: {verification_result}, Match Rate: {match_rate}%"
-        if readable_time:
-            result_text += f", Last Location Time: {readable_time}"
 
-        return jsonify({
-            "success": True,
-            "check_index": check_index,
-            "name": api["name"],
-            "data": result,
-            "result_text": result_text
-        })
-
+        if verification_result == "TRUE":
+            return jsonify({
+                "success": True,
+                "check_index": check_index,
+                "name": api["name"],
+                "data": result,
+                "result_text": ""
+            })
+        else:
+            if readable_time:
+                result_text += f", Last Location Time: {readable_time}"
+            return jsonify({
+                "success": False,
+                "check_index": check_index,
+                "name": api["name"],
+                "data": result,
+                "result_text": result_text
+            })
+            
     return jsonify({
         "success": True,
         "check_index": check_index,
