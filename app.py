@@ -145,7 +145,6 @@ def run_single_security_check(check_index):
         return jsonify({"success": False, "error": "Invalid check index"}), 400
 
     api = apis[check_index]
-    print(f"\n🔍 Running {api['name']}...")
     result = call_api(api["url"], api["payload"])
 
     if "error" in result:
