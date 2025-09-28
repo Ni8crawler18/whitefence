@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureAuth - Fraud Detection Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .shield-icon {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+
+        h1 {
+            color: #1a1a1a;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .step {
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .step.active {
+            animation-delay: 0.2s;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 16px;
+            font-size: 16px;
+        }
+
+        .step-title {
+            color: #1a1a1a;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+            color: #1a1a1a;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+            position: relative;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-loading {
+            pointer-events: none;
+        }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .checks-container {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .check-item:last-child {
+            border-bottom: none;
+        }
+
+        .check-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .check-pending {
+            fill: #6b7280;
+            animation: pulse 2s infinite;
+        }
+
+        .check-success {
+            fill: #10b981;
+        }
+
+        .check-error {
+            fill: #ef4444;
+        }
+
+        .check-text {
+            flex: 1;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .check-result {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            margin: 24px 0;
+        }
+
+        .status-success {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+        }
+
+        .status-error {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2, #fef5f5);
+        }
+
+        .status-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .step-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <svg class="shield-icon" viewBox="0 0 24 24">
+                    <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H16V17H8V11H9.2V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.4,8.7 10.4,10V11H13.6V10C13.6,8.7 12.8,8.2 12,8.2Z"/>
+                </svg>
+            </div>
+            <h1>SecureAuth</h1>
+            <p class="subtitle">Advanced Fraud Detection & Verification</p>
+        </div>
+
+        <!-- Step 1: Phone Number Input -->
+        <div id="step1" class="step active">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <div class="step-title">Enter Phone Number</div>
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">Mobile Number</label>
+                <input type="tel" id="phoneNumber" placeholder="+919876543210" value="+99999991001">
+            </div>
+            <button class="btn" id="startBtn" onclick="startSecurityChecks()">
+                Begin Security Verification
+            </button>
+            <div id="step1Error" class="error-message hidden"></div>
+        </div>
+
+        <!-- Step 2: Security Checks -->
+        <div id="step2" class="step hidden">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <div class="step-title">Security Analysis</div>
+            </div>
+            <p style="color: #6b7280; margin-bottom: 20px;">Running comprehensive security checks...</p>
+            
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            
+            <div class="checks-container">
+                <div class="check-item">
+                    <svg class="check-icon check-pending" id="check1-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                    <div>
+                        <div class="check-text">SIM Swap Check</div>
+                        <div id="check1-result" class="check-result">Analyzing recent SIM changes...</div>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <svg class="check-icon check-pending" id="check2-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                    <div>
+                        <div class="check-text">SIM Swap History</div>
+                        <div id="check2-result" class="check-result">Retrieving SIM change history...</div>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <svg class="check-icon check-pending" id="check3-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                    <div>
+                        <div class="check-text">Device Swap Check</div>
+                        <div id="check3-result" class="check-result">Checking device changes...</div>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <svg class="check-icon check-pending" id="check4-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                    <div>
+                        <div class="check-text">Device Swap History</div>
+                        <div id="check4-result" class="check-result">Retrieving device change history...</div>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <svg class="check-icon check-pending" id="check5-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                    <div>
+                        <div class="check-text">Location Verification</div>
+                        <div id="check5-result" class="check-result">Verifying device location...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: OTP Verification -->
+        <div id="step3" class="step hidden">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <div class="step-title">OTP Verification</div>
+            </div>
+            
+            <div class="status-card status-success">
+                <svg class="status-icon" style="fill: #10b981;" viewBox="0 0 24 24">
+                    <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.41,10.09L6,11.5L11,16.5Z"/>
+                </svg>
+                <h3 style="color: #065f46; margin-bottom: 8px;">Security Checks Passed!</h3>
+                <p id="otpMessage" style="color: #047857;">OTP has been sent to your registered number</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="otpCode">Enter OTP Code</label>
+                <input type="text" id="otpCode" placeholder="Enter 6-digit code" maxlength="6">
+            </div>
+            <button class="btn" id="verifyBtn" onclick="verifyOTP()">
+                Verify OTP & Complete Transaction
+            </button>
+            <div id="step3Error" class="error-message hidden"></div>
+        </div>
+
+        <!-- Success/Error States -->
+        <div id="successState" class="step hidden">
+            <div class="status-card status-success">
+                <svg class="status-icon" style="fill: #10b981;" viewBox="0 0 24 24">
+                    <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.41,10.09L6,11.5L11,16.5Z"/>
+                </svg>
+                <h3 style="color: #065f46; margin-bottom: 8px;">Transaction Successful!</h3>
+                <p style="color: #047857;">Your identity has been verified and the transaction is complete.</p>
+            </div>
+            <button class="btn" onclick="resetForm()">Start New Transaction</button>
+        </div>
+
+        <div id="errorState" class="step hidden">
+            <div class="status-card status-error">
+                <svg class="status-icon" style="fill: #ef4444;" viewBox="0 0 24 24">
+                    <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,7A1,1 0 0,0 11,8V16A1,1 0 0,0 12,17A1,1 0 0,0 13,16V8A1,1 0 0,0 12,7M12,19A1.5,1.5 0 0,0 13.5,20.5A1.5,1.5 0 0,0 12,22A1.5,1.5 0 0,0 10.5,20.5A1.5,1.5 0 0,0 12,19Z"/>
+                </svg>
+                <h3 style="color: #991b1b; margin-bottom: 8px;">Verification Failed</h3>
+                <p id="errorMessage" style="color: #dc2626;"></p>
+            </div>
+            <button class="btn" onclick="resetForm()">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let currentPhoneNumber = '';
+        
+        // API Base URL - change this to your Flask server URL
+        const API_BASE = '';  // Leave empty for same origin, or use 'http://localhost:5000'
+
+        async function makeRequest(endpoint, data = null) {
+            try {
+                const options = {
+                    method: data ? 'POST' : 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(API_BASE + endpoint, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'Request failed');
+                }
+                
+                return result;
+            } catch (error) {
+                throw new Error(error.message || 'Network error occurred');
+            }
+        }
+
+        async function startSecurityChecks() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            if (!phoneNumber) {
+                showError('step1Error', 'Please enter a valid phone number');
+                return;
+            }
+
+            currentPhoneNumber = phoneNumber;
+            hideError('step1Error');
+            setLoading('startBtn', true);
+
+            try {
+                showStep(2);
+                await runSecurityChecks(phoneNumber);
+            } catch (error) {
+                setLoading('startBtn', false);
+                showStep(1);
+                showError('step1Error', error.message);
+            }
+        }
+
+        async function runSecurityChecks(phoneNumber) {
+            const progressFill = document.getElementById('progressFill');
+            let checkResults = [];
+            
+            // Reset all check states
+            for (let i = 1; i <= 5; i++) {
+                const checkIcon = document.getElementById(`check${i}-icon`);
+                const checkResult = document.getElementById(`check${i}-result`);
+                
+                checkIcon.classList.remove('check-success', 'check-error');
+                checkIcon.classList.add('check-pending');
+                checkResult.textContent = 'Waiting...';
+            }
+
+            try {
+                // Start the security checks session
+                const startResponse = await makeRequest('/api/security-checks/start', { phoneNumber });
+                
+                if (!startResponse.success) {
+                    throw new Error('Failed to initialize security checks');
+                }
+
+                const totalChecks = startResponse.total_checks;
+                
+                // Run each check sequentially
+                for (let i = 0; i < totalChecks; i++) {
+                    const checkIcon = document.getElementById(`check${i + 1}-icon`);
+                    const checkResult = document.getElementById(`check${i + 1}-result`);
+                    
+                    // Start the check - show spinner
+                    checkIcon.classList.remove('check-pending');
+                    checkIcon.classList.add('spinner');
+                    checkResult.textContent = 'Running check...';
+                    
+                    try {
+                        // Call individual security check
+                        const response = await makeRequest(`/api/security-checks/run/${i}`, { phoneNumber });
+                        
+                        // Stop spinner
+                        checkIcon.classList.remove('spinner');
+                        
+                        if (response.success) {
+                            // Success state
+                            checkIcon.classList.add('check-success');
+                            checkIcon.innerHTML = '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.41,10.09L6,11.5L11,16.5Z"/>';
+                            checkResult.textContent = response.result_text;
+                            checkResult.style.color = '#10b981';
+                        } else {
+                            // Error state
+                            checkIcon.classList.add('check-error');
+                            checkIcon.innerHTML = '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,7A1,1 0 0,0 11,8V16A1,1 0 0,0 12,17A1,1 0 0,0 13,16V8A1,1 0 0,0 12,7M12,19A1.5,1.5 0 0,0 13.5,20.5A1.5,1.5 0 0,0 12,22A1.5,1.5 0 0,0 10.5,20.5A1.5,1.5 0 0,0 12,19Z"/>';
+                            checkResult.textContent = response.result_text || 'Check failed';
+                            checkResult.style.color = '#ef4444';
+                        }
+                        
+                        // Store result for summary
+                        checkResults.push(response);
+                        
+                    } catch (error) {
+                        // Handle individual check error
+                        checkIcon.classList.remove('spinner');
+                        checkIcon.classList.add('check-error');
+                        checkIcon.innerHTML = '<path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,7A1,1 0 0,0 11,8V16A1,1 0 0,0 12,17A1,1 0 0,0 13,16V8A1,1 0 0,0 12,7M12,19A1.5,1.5 0 0,0 13.5,20.5A1.5,1.5 0 0,0 12,22A1.5,1.5 0 0,0 10.5,20.5A1.5,1.5 0 0,0 12,19Z"/>';
+                        checkResult.textContent = `Error: ${error.message}`;
+                        checkResult.style.color = '#ef4444';
+                        
+                        checkResults.push({
+                            success: false,
+                            error: error.message,
+                            check_index: i
+                        });
+                    }
+                    
+                    // Update progress bar after each check
+                    const progress = ((i + 1) / totalChecks) * 100;
+                    progressFill.style.width = progress + '%';
+                    
+                    // Add a small delay between checks for better UX
+                    if (i < totalChecks - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                    }
+                }
+
+                // Get final summary
+                const summaryResponse = await makeRequest('/api/security-checks/summary', { results: checkResults });
+                
+                // Wait a moment to show completion
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                if (summaryResponse.success && summaryResponse.all_passed) {
+                    // All checks passed, send OTP
+                    await sendOTP(phoneNumber);
+                    showStep(3);
+                } else {
+                    // Some checks failed
+                    const failedCount = summaryResponse.total_checks - summaryResponse.passed_checks;
+                    showError('', `${failedCount} security check(s) failed. Cannot proceed with transaction.`);
+                    showStep('error');
+                }
+
+            } catch (error) {
+                console.error('Security checks error:', error);
+                showError('', `Security verification failed: ${error.message}`);
+                showStep('error');
+            } finally {
+                setLoading('startBtn', false);
+            }
+        }
+
+        async function sendOTP(phoneNumber) {
+            try {
+                const response = await makeRequest('/api/send-otp', { phoneNumber });
+                
+                if (response.success) {
+                    document.getElementById('otpMessage').textContent = response.message;
+                } else {
+                    throw new Error(response.error || 'Failed to send OTP');
+                }
+            } catch (error) {
+                console.error('OTP sending error:', error);
+                document.getElementById('otpMessage').textContent = 'Error sending OTP. Please try again.';
+                document.getElementById('otpMessage').style.color = '#dc2626';
+            }
+        }
+
+        async function verifyOTP() {
+            const otpCode = document.getElementById('otpCode').value.trim();
+            if (!otpCode || otpCode.length !== 6) {
+                showError('step3Error', 'Please enter a valid 6-digit OTP code');
+                return;
+            }
+
+            hideError('step3Error');
+            setLoading('verifyBtn', true);
+
+            try {
+                const response = await makeRequest('/api/verify-otp', {
+                    phoneNumber: currentPhoneNumber,
+                    otpCode: otpCode
+                });
+
+                if (response.success && response.approved) {
+                    showStep('success');
+                } else {
+                    showError('step3Error', response.message || 'Invalid OTP code. Please try again.');
+                }
+
+            } catch (error) {
+                console.error('OTP verification error:', error);
+                showError('step3Error', error.message);
+            } finally {
+                setLoading('verifyBtn', false);
+            }
+        }
+
+        function showStep(step) {
+            // Hide all steps
+            const allSteps = document.querySelectorAll('.step');
+            allSteps.forEach(s => s.classList.add('hidden'));
+            
+            if (step === 'success') {
+                document.getElementById('successState').classList.remove('hidden');
+            } else if (step === 'error') {
+                document.getElementById('errorState').classList.remove('hidden');
+            } else {
+                document.getElementById(`step${step}`).classList.remove('hidden');
+                currentStep = step;
+            }
+        }
+
+        function showError(elementId, message) {
+            if (elementId === '') {
+                document.getElementById('errorMessage').textContent = message;
+                return;
+            }
+            
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        function hideError(elementId) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
+        }
+
+        function setLoading(buttonId, isLoading) {
+            const button = document.getElementById(buttonId);
+            if (isLoading) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+                button.textContent = '';
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+                // Restore original text
+                if (buttonId === 'startBtn') {
+                    button.textContent = 'Begin Security Verification';
+                } else if (buttonId === 'verifyBtn') {
+                    button.textContent = 'Verify OTP & Complete Transaction';
+                }
+            }
+        }
+
+        function resetForm() {
+            // Reset form state
+            currentPhoneNumber = '';
+            document.getElementById('phoneNumber').value = '+99999991001';
+            document.getElementById('otpCode').value = '';
+            document.getElementById('progressFill').style.width = '0%';
+            
+            // Hide all errors
+            hideError('step1Error');
+            hideError('step3Error');
+            
+            // Reset loading states
+            setLoading('startBtn', false);
+            setLoading('verifyBtn', false);
+            
+            // Reset OTP message
+            document.getElementById('otpMessage').textContent = 'OTP has been sent to your registered number';
+            document.getElementById('otpMessage').style.color = '#047857';
+            
+            // Reset all check icons and results
+            for (let i = 1; i <= 5; i++) {
+                const checkIcon = document.getElementById(`check${i}-icon`);
+                const checkResult = document.getElementById(`check${i}-result`);
+                
+                checkIcon.classList.remove('check-success', 'check-error', 'spinner');
+                checkIcon.classList.add('check-pending');
+                checkIcon.innerHTML = '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="3" fill="currentColor"/>';
+                
+                const defaultMessages = [
+                    "Analyzing recent SIM changes...",
+                    "Retrieving SIM change history...",
+                    "Checking device changes...",
+                    "Retrieving device change history...",
+                    "Verifying device location..."
+                ];
+                checkResult.textContent = defaultMessages[i-1];
+                checkResult.style.color = '#6b7280'; // Reset to default color
+            }
+            
+            showStep(1);
+        }
+
+        // Auto-format phone number input
+        document.getElementById('phoneNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value && !value.startsWith('+')) {
+                value = '+' + value;
+            }
+            e.target.value = value;
+        });
+
+        // Auto-format OTP input
+        document.getElementById('otpCode').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Auto-submit OTP when 6 digits are entered
+        document.getElementById('otpCode').addEventListener('input', function(e) {
+            if (e.target.value.length === 6) {
+                setTimeout(() => {
+                    if (document.getElementById('otpCode').value.length === 6) {
+                        verifyOTP();
+                    }
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
