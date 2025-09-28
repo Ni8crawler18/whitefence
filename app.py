@@ -50,13 +50,12 @@ def check_otp(phone_number, code):
     )
     return verification_check.status == "approved"
 
-# EXACT FUNCTION FROM YOUR ORIGINAL SCRIPT
+
 def format_date(iso_date_str):
     try:
         if iso_date_str.endswith("Z"):
             iso_date_str = iso_date_str[:-1]
         dt = datetime.fromisoformat(iso_date_str)
-        # Format it nicely
         return dt.strftime("%d %b %Y, %H:%M UTC")
     except Exception:
         return iso_date_str
