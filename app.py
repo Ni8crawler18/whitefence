@@ -274,9 +274,10 @@ def send_otp():
             "status": verification.status
         })
     except Exception as e:
+        print(f"Error : {e}")
         return jsonify({
             "success": False,
-            "error": str(e)
+            "error": "Try again later"
         }), 500
 
 
@@ -306,9 +307,10 @@ def verify_otp():
                 "message": "Incorrect OTP. Transaction failed."
             })
     except Exception as e:
+        print(f"Error : {e}")
         return jsonify({
             "success": False,
-            "error": str(e)
+            "error": "Try again later"
         }), 500
 
 if __name__ == '__main__':
