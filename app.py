@@ -6,13 +6,11 @@ from dotenv import load_dotenv
 from twilio.rest import Client
 from datetime import datetime
 
-# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-# EXACT CONFIGURATION FROM YOUR ORIGINAL SCRIPT
 API_KEY = os.getenv("RAPIDAPI_KEY")
 TWILIO_SID = os.getenv("TWILIO_SID")
 TWILIO_AUTH = os.getenv("TWILIO_AUTH")
@@ -28,7 +26,6 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-# EXACT FUNCTION FROM YOUR ORIGINAL SCRIPT
 def call_api(url, payload):
     try:
         response = requests.post(url, json=payload, headers=HEADERS, timeout=10)
@@ -37,7 +34,6 @@ def call_api(url, payload):
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
-# EXACT FUNCTION FROM YOUR ORIGINAL SCRIPT
 def send_otp_via_twilio(phone_number):
     client = Client(TWILIO_SID, TWILIO_AUTH)
     verification = client.verify.services(TWILIO_VERIFY_SERVICE).verifications.create(
@@ -46,7 +42,6 @@ def send_otp_via_twilio(phone_number):
     )
     return {"success": True, "status": verification.status, "sid": verification.sid}
 
-# EXACT FUNCTION FROM YOUR ORIGINAL SCRIPT
 def check_otp(phone_number, code):
     client = Client(TWILIO_SID, TWILIO_AUTH)
     verification_check = client.verify.services(TWILIO_VERIFY_SERVICE).verification_checks.create(
@@ -58,10 +53,8 @@ def check_otp(phone_number, code):
 # EXACT FUNCTION FROM YOUR ORIGINAL SCRIPT
 def format_date(iso_date_str):
     try:
-        # Remove trailing 'Z' if present
         if iso_date_str.endswith("Z"):
             iso_date_str = iso_date_str[:-1]
-        # Parse the ISO string
         dt = datetime.fromisoformat(iso_date_str)
         # Format it nicely
         return dt.strftime("%d %b %Y, %H:%M UTC")
