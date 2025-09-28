@@ -155,9 +155,7 @@ def run_single_security_check(check_index):
             "error": result["error"],
             "result_text": f"Failed: {result['error']}"
         })
-    # Combined SIM/Device Swap check
     if api["check_type"] in ["sim_swap", "device_swap"]:
-        # Always call the CHECK API first
         check_url = "https://network-as-code.p-eu.rapidapi.com/passthrough/camara/v1/sim-swap/sim-swap/v0/check" \
             if api["check_type"] == "sim_swap" else \
             "https://network-as-code.p-eu.rapidapi.com/passthrough/camara/v1/device-swap/device-swap/v1/check"
